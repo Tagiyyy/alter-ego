@@ -11,7 +11,7 @@ router.post('/session', (req, res) => {
 });
 
 // Send a message and get a response
-router.post('/message', (req, res) => {
+router.post('/message', async (req, res) => {
   const { sessionId, text, mode } = req.body;
   if (!sessionId || !text) {
     return res.status(400).json({ error: 'sessionId and text are required' });
@@ -25,18 +25,23 @@ router.post('/message', (req, res) => {
   // Update learning profile (always learn, regardless of mode)
   learning.updateProfile(text);
 
-  // Generate response based on selected mode
-  const responseText = ai.generateResponse(text, sessionId, aiMode);
+  try {
+    // Generate response based on selected mode (async - uses LLM)
+    const responseText = await ai.generateResponse(text, sessionId, aiMode);
 
-  // Save assistant response
-  const assistantMessage = conversation.addMessage(sessionId, 'assistant', responseText);
+    // Save assistant response
+    const assistantMessage = conversation.addMessage(sessionId, 'assistant', responseText);
 
-  res.json({
-    userMessage,
-    assistantMessage,
-    intent: ai.detectIntent(text),
-    mode: aiMode,
-  });
+    res.json({
+      userMessage,
+      assistantMessage,
+      intent: ai.detectIntent(text),
+      mode: aiMode,
+    });
+  } catch (err) {
+    console.error('Error generating response:', err);
+    res.status(500).json({ error: 'Failed to generate response' });
+  }
 });
 
 // Get session history
