@@ -34,6 +34,20 @@ const Chat = (() => {
     return res.json();
   }
 
+  async function startSimulation() {
+    const res = await fetch(`${API_BASE}/simulation/start`, { method: 'POST' });
+    return res.json();
+  }
+
+  async function sendSimulationReply(simSessionId, text) {
+    const res = await fetch(`${API_BASE}/simulation/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: simSessionId, text }),
+    });
+    return res.json();
+  }
+
   function getSessionId() {
     return sessionId;
   }
@@ -44,5 +58,7 @@ const Chat = (() => {
     getProfile,
     rebuildProfile,
     getSessionId,
+    startSimulation,
+    sendSimulationReply,
   };
 })();

@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const chatRoutes = require('./routes/chat');
 const learningRoutes = require('./routes/learning');
+const simulationRoutes = require('./routes/simulation');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/learning', learningRoutes);
+app.use('/api/simulation', simulationRoutes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));

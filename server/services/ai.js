@@ -287,6 +287,165 @@ function generateTemplateFallback(userText, mode) {
   return 'APIキーが未設定です。.env に ANTHROPIC_API_KEY を設定してください。';
 }
 
+// ===== Simulation Mode =====
+
+const SIMULATION_SYSTEM_PROMPT = `あなたはユーザーの友達として自然に会話を始めてください。以下のルールに従ってください:
+
+- 自然な日本語で話しかけてください
+- 短く簡潔に話してください（1〜2文程度）
+- 日常的な話題で話しかけてください（最近の出来事、趣味、天気、食べ物など）
+- 堅すぎず、カジュアルすぎない口調で話してください
+- 絵文字は使わないでください
+- 質問を投げかけるなど、相手が返答しやすい内容にしてください`;
+
+async function generateSimulationOpener(sessionId) {
+  const anthropic = getClient();
+  if (!anthropic) return null;
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 256,
+    system: SIMULATION_SYSTEM_PROMPT,
+    messages: [
+      { role: 'user', content: '友達として自然に話しかけてください。何か日常的な話題で会話を始めてください。' },
+    ],
+  });
+
+  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
+    return response.content[0].text;
+  }
+  return null;
+}
+
+async function generateUserCandidates(sessionId, count = 3) {
+  const anthropic = getClient();
+  if (!anthropic) return null;
+
+  const profile = learning.loadProfile();
+  const summary = learning.getProfileSummary();
+
+  if (profile.totalMessages === 0) {
+    return ['そうなんだ', 'へぇ、面白いね', 'うん、最近どう？'];
+  }
+
+  const alterEgoPrompt = buildAlterEgoSystemPrompt(profile, summary);
+
+  const candidateSystemPrompt = `${alterEgoPrompt}
+
+## 追加の指示
+あなたはこの会話に対して、ユーザーらしい返答の候補を${count}個生成してください。
+それぞれ異なるニュアンスの返答にしてください（例：共感的、質問を返す、自分の話をする など）。
+各候補は1〜2文程度の短い返答にしてください。
+
+以下のJSON形式で出力してください。JSON以外は出力しないでください:
+["候補1", "候補2", "候補3"]`;
+
+  const historyMessages = getConversationMessages(sessionId);
+
+  const messages = [];
+  let lastRole = null;
+  for (const msg of historyMessages) {
+    if (msg.role === lastRole) continue;
+    messages.push(msg);
+    lastRole = msg.role;
+  }
+
+  // Ensure first message is from user (the system's opener is stored as assistant)
+  while (messages.length > 0 && messages[0].role !== 'user') {
+    messages.shift();
+  }
+
+  // If empty, create a placeholder request
+  if (messages.length === 0) {
+    // Get the last assistant message from the session to use as context
+    const session = conversation.getSession(sessionId);
+    if (session && session.messages.length > 0) {
+      const lastMsg = session.messages[session.messages.length - 1];
+      messages.push({ role: 'user', content: `以下の発言に対して、ユーザーらしい返答候補を生成してください: 「${lastMsg.text}」` });
+    } else {
+      messages.push({ role: 'user', content: '返答候補を生成してください。' });
+    }
+  }
+
+  // Ensure last message is from user
+  if (messages[messages.length - 1].role !== 'user') {
+    messages.push({ role: 'user', content: 'この会話の流れに対して、ユーザーらしい返答候補を生成してください。' });
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 512,
+    system: candidateSystemPrompt,
+    messages,
+  });
+
+  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
+    try {
+      const text = response.content[0].text.trim();
+      // Extract JSON array from the response
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        const candidates = JSON.parse(match[0]);
+        if (Array.isArray(candidates) && candidates.length > 0) {
+          return candidates.slice(0, count);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse candidates JSON:', e.message);
+    }
+  }
+
+  return ['そうなんだ', 'へぇ、面白いね', 'うん、最近どう？'];
+}
+
+async function generateSimulationReply(userText, sessionId) {
+  const anthropic = getClient();
+  if (!anthropic) return null;
+
+  const replySystemPrompt = `あなたはユーザーの友達として自然に会話を続けてください。以下のルールに従ってください:
+
+- 自然な日本語で会話してください
+- 短く簡潔に返答してください（1〜2文程度）
+- 相手の話に共感し、興味を示してください
+- 会話を続けやすいように、質問したり感想を述べたりしてください
+- 堅すぎず、カジュアルすぎない口調で話してください
+- 絵文字は使わないでください`;
+
+  const historyMessages = getConversationMessages(sessionId);
+
+  const messages = [];
+  let lastRole = null;
+  for (const msg of historyMessages) {
+    if (msg.role === lastRole) continue;
+    messages.push(msg);
+    lastRole = msg.role;
+  }
+
+  if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+    messages.push({ role: 'user', content: userText });
+  }
+
+  while (messages.length > 0 && messages[0].role !== 'user') {
+    messages.shift();
+  }
+
+  if (messages.length === 0) {
+    messages.push({ role: 'user', content: userText });
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 256,
+    system: replySystemPrompt,
+    messages,
+  });
+
+  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
+    return response.content[0].text;
+  }
+  return null;
+}
+
 // ===== Main Export =====
 
 async function generateResponse(userText, sessionId, mode = 'alter-ego') {
@@ -305,4 +464,7 @@ async function generateResponse(userText, sessionId, mode = 'alter-ego') {
 module.exports = {
   generateResponse,
   detectIntent,
+  generateSimulationOpener,
+  generateUserCandidates,
+  generateSimulationReply,
 };

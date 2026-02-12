@@ -17,8 +17,20 @@
   const labelNormal = document.querySelector('.mode-switch__label--normal');
   const labelEgo = document.querySelector('.mode-switch__label--ego');
 
+  // Simulation mode DOM references
+  const simBtn = document.getElementById('simBtn');
+  const simScreen = document.getElementById('simScreen');
+  const simBackBtn = document.getElementById('simBackBtn');
+  const simMessages = document.getElementById('simMessages');
+  const simCandidateArea = document.getElementById('simCandidateArea');
+  const simCandidateList = document.getElementById('simCandidateList');
+  const simEditInput = document.getElementById('simEditInput');
+  const simSendBtn = document.getElementById('simSendBtn');
+
   let isProcessing = false;
   let currentMode = 'alter-ego'; // 'alter-ego' | 'normal'
+  let simSessionId = null;
+  let isSimProcessing = false;
 
   // ---- UI Helpers ----
 
@@ -344,6 +356,184 @@
     });
   }
 
+  // ---- Simulation Mode ----
+
+  function addSimMessage(role, text) {
+    const welcome = simMessages.querySelector('.sim-welcome');
+    if (welcome) welcome.remove();
+
+    const div = document.createElement('div');
+    div.className = `message message--${role === 'user' ? 'user' : 'ai'}`;
+
+    const label = document.createElement('div');
+    label.className = 'message__label';
+    label.textContent = role === 'user' ? 'あなた' : '相手';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message__bubble';
+    bubble.textContent = text;
+
+    div.appendChild(label);
+    div.appendChild(bubble);
+    simMessages.appendChild(div);
+    simMessages.scrollTop = simMessages.scrollHeight;
+    return div;
+  }
+
+  function addSimSpeakingIndicator() {
+    const div = document.createElement('div');
+    div.className = 'message message--ai';
+    div.id = 'simSpeakingIndicator';
+
+    const label = document.createElement('div');
+    label.className = 'message__label';
+    label.textContent = '相手';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message__bubble';
+
+    const indicator = document.createElement('div');
+    indicator.className = 'speaking-indicator';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'speaking-indicator__dot';
+      indicator.appendChild(dot);
+    }
+    bubble.appendChild(indicator);
+    div.appendChild(label);
+    div.appendChild(bubble);
+
+    simMessages.appendChild(div);
+    simMessages.scrollTop = simMessages.scrollHeight;
+    return div;
+  }
+
+  function removeSimSpeakingIndicator() {
+    const ind = document.getElementById('simSpeakingIndicator');
+    if (ind) ind.remove();
+  }
+
+  function renderCandidates(candidates) {
+    simCandidateList.innerHTML = '';
+    simCandidateArea.hidden = false;
+    simEditInput.value = '';
+
+    candidates.forEach((text, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'sim-candidate-btn';
+      btn.textContent = text;
+      btn.addEventListener('click', () => {
+        // Deselect others
+        simCandidateList.querySelectorAll('.sim-candidate-btn').forEach((b) => {
+          b.classList.remove('sim-candidate-btn--selected');
+        });
+        btn.classList.add('sim-candidate-btn--selected');
+        simEditInput.value = text;
+        simEditInput.focus();
+      });
+      simCandidateList.appendChild(btn);
+    });
+  }
+
+  function hideCandidates() {
+    simCandidateArea.hidden = true;
+    simCandidateList.innerHTML = '';
+    simEditInput.value = '';
+  }
+
+  async function startSimulation() {
+    // Show sim screen, hide main chat
+    simScreen.hidden = false;
+    document.querySelector('.chat').style.display = 'none';
+    document.querySelector('.header').querySelector('.mode-switch').style.display = 'none';
+
+    // Reset
+    simMessages.innerHTML = '<div class="sim-welcome"><p>会話シミュレーションを開始しています...</p></div>';
+    hideCandidates();
+    simSessionId = null;
+
+    try {
+      const result = await Chat.startSimulation();
+      simSessionId = result.sessionId;
+
+      // Show opener
+      const welcome = simMessages.querySelector('.sim-welcome');
+      if (welcome) welcome.remove();
+      addSimMessage('assistant', result.openerMessage.text);
+
+      // Show candidates
+      if (result.candidates && result.candidates.length > 0) {
+        renderCandidates(result.candidates);
+      }
+    } catch (err) {
+      const welcome = simMessages.querySelector('.sim-welcome');
+      if (welcome) welcome.remove();
+      addSimMessage('assistant', '(シミュレーションの開始に失敗しました)');
+      console.error('Simulation start error:', err);
+    }
+  }
+
+  function exitSimulation() {
+    simScreen.hidden = true;
+    document.querySelector('.chat').style.display = '';
+    document.querySelector('.header').querySelector('.mode-switch').style.display = '';
+    simSessionId = null;
+    hideCandidates();
+  }
+
+  async function handleSimSend() {
+    const text = simEditInput.value.trim();
+    if (!text || isSimProcessing || !simSessionId) return;
+    isSimProcessing = true;
+
+    // Show user message
+    addSimMessage('user', text);
+    hideCandidates();
+
+    // Show typing indicator
+    addSimSpeakingIndicator();
+
+    try {
+      const result = await Chat.sendSimulationReply(simSessionId, text);
+      removeSimSpeakingIndicator();
+
+      // Show system reply
+      addSimMessage('assistant', result.replyMessage.text);
+
+      // Show new candidates
+      if (result.candidates && result.candidates.length > 0) {
+        renderCandidates(result.candidates);
+      }
+    } catch (err) {
+      removeSimSpeakingIndicator();
+      addSimMessage('assistant', '(返答の生成に失敗しました)');
+      console.error('Simulation reply error:', err);
+    }
+
+    isSimProcessing = false;
+  }
+
+  function setupSimulation() {
+    simBtn.addEventListener('click', () => {
+      startSimulation();
+    });
+
+    simBackBtn.addEventListener('click', () => {
+      exitSimulation();
+    });
+
+    simSendBtn.addEventListener('click', () => {
+      handleSimSend();
+    });
+
+    simEditInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        handleSimSend();
+      }
+    });
+  }
+
   // ---- Init ----
 
   function init() {
@@ -351,6 +541,7 @@
     setupTextInput();
     setupProfileModal();
     setupModeToggle();
+    setupSimulation();
     Chat.createSession();
   }
 
