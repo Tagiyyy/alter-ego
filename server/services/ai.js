@@ -157,7 +157,55 @@ function extractTopicFromText(text) {
   return pickRandom(topicCandidates) || '';
 }
 
-function generateResponse(userText, sessionId) {
+// ===== Normal AI mode =====
+// Responds as a helpful, neutral assistant (no user-style mimicry)
+
+const NORMAL_TEMPLATES = {
+  greeting: [
+    'こんにちは！何かお手伝いできることはありますか？',
+    'こんにちは！今日はどんなお話をしましょうか？',
+    'こんにちは！何でも聞いてくださいね。',
+  ],
+  question: [
+    'それは良い質問ですね。{topic}については、いろいろな考え方がありますね。もう少し詳しく教えていただけますか？',
+    '{topic}についてですね。興味深いテーマです。どのような点が気になりますか？',
+    'なるほど、{topic}について知りたいのですね。一緒に考えてみましょう。',
+  ],
+  opinion: [
+    'なるほど、そのようにお考えなのですね。とても興味深い視点だと思います。',
+    'そのご意見、よくわかります。{topic}については確かにそういう面がありますね。',
+    'おっしゃる通りかもしれませんね。その考え方は大切だと思います。',
+  ],
+  statement: [
+    'そうなんですね。{topic}について、もう少し詳しく聞かせてもらえますか？',
+    'なるほど、それは面白いですね。他にも何かありますか？',
+    'ありがとうございます。とても参考になります。',
+    'そうですか。{topic}って奥が深いですよね。',
+  ],
+  farewell: [
+    'お話できて楽しかったです。またいつでも話しかけてくださいね！',
+    'ありがとうございました。また会えるのを楽しみにしています！',
+    'お疲れ様でした。良い一日をお過ごしください！',
+  ],
+  default: [
+    'そうですね。もう少し詳しく教えていただけますか？',
+    'なるほど、興味深いですね。続きを聞かせてください。',
+    'ありがとうございます。何か他にお話ししたいことはありますか？',
+  ],
+};
+
+function generateNormalResponse(userText) {
+  const intent = detectIntent(userText);
+  const topic = extractTopicFromText(userText);
+  const templates = NORMAL_TEMPLATES[intent] || NORMAL_TEMPLATES.default;
+  let response = pickRandom(templates);
+  response = response.replace(/\{topic\}/g, topic || 'それ');
+  return response;
+}
+
+// ===== Alter Ego (user-mimicking) mode =====
+
+function generateAlterEgoResponse(userText, sessionId) {
   const profile = learning.loadProfile();
   const summary = learning.getProfileSummary();
   const intent = detectIntent(userText);
@@ -233,6 +281,13 @@ function generateResponse(userText, sessionId) {
   }
 
   return response;
+}
+
+function generateResponse(userText, sessionId, mode = 'alter-ego') {
+  if (mode === 'normal') {
+    return generateNormalResponse(userText);
+  }
+  return generateAlterEgoResponse(userText, sessionId);
 }
 
 module.exports = {

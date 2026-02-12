@@ -12,19 +12,21 @@ router.post('/session', (req, res) => {
 
 // Send a message and get a response
 router.post('/message', (req, res) => {
-  const { sessionId, text } = req.body;
+  const { sessionId, text, mode } = req.body;
   if (!sessionId || !text) {
     return res.status(400).json({ error: 'sessionId and text are required' });
   }
 
+  const aiMode = mode === 'normal' ? 'normal' : 'alter-ego';
+
   // Save user message
   const userMessage = conversation.addMessage(sessionId, 'user', text);
 
-  // Update learning profile
+  // Update learning profile (always learn, regardless of mode)
   learning.updateProfile(text);
 
-  // Generate response mimicking user's style
-  const responseText = ai.generateResponse(text, sessionId);
+  // Generate response based on selected mode
+  const responseText = ai.generateResponse(text, sessionId, aiMode);
 
   // Save assistant response
   const assistantMessage = conversation.addMessage(sessionId, 'assistant', responseText);
@@ -33,6 +35,7 @@ router.post('/message', (req, res) => {
     userMessage,
     assistantMessage,
     intent: ai.detectIntent(text),
+    mode: aiMode,
   });
 });
 
