@@ -573,7 +573,7 @@ html, body {
   inset: 0;
   background: url('/img/sim-bg.svg') no-repeat center top;
   background-size: 100% auto;
-  opacity: 0.5;
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
 }
@@ -585,9 +585,10 @@ html, body {
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(15, 15, 26, 0.3) 25%,
-    rgba(15, 15, 26, 0.7) 50%,
-    var(--bg-primary) 75%
+    rgba(15, 15, 26, 0.15) 35%,
+    rgba(15, 15, 26, 0.5) 60%,
+    rgba(15, 15, 26, 0.85) 80%,
+    var(--bg-primary) 95%
   );
   pointer-events: none;
   z-index: 0;
