@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alter Ego - 音声チャット & 適応学習</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1 class="header__title">Alter Ego</h1>
+      <p class="header__subtitle">あなたの分身AI — 会話するほどあなたに似ていく</p>
+      <button id="profileBtn" class="btn btn--secondary btn--small" title="学習プロフィール">
+        <span class="icon">📊</span> 学習状況
+      </button>
+    </header>
+
+    <main class="chat">
+      <div id="chatMessages" class="chat__messages">
+        <div class="chat__welcome">
+          <p>マイクボタンを押して話しかけてください。</p>
+          <p class="chat__welcome-sub">会話を重ねるほど、あなたの口調を学習していきます。</p>
+        </div>
+      </div>
+
+      <div class="chat__input-area">
+        <div class="voice-controls">
+          <button id="voiceBtn" class="btn btn--mic" title="音声入力">
+            <svg class="mic-icon" viewBox="0 0 24 24" width="28" height="28">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <div id="voiceStatus" class="voice-status">待機中</div>
+        </div>
+        <div class="text-input">
+          <input type="text" id="textInput" class="text-input__field" placeholder="テキストでも入力できます..." />
+          <button id="sendBtn" class="btn btn--send" title="送信">
+            <svg viewBox="0 0 24 24" width="22" height="22">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Learning Profile Modal -->
+    <div id="profileModal" class="modal" hidden>
+      <div class="modal__backdrop"></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>学習プロフィール</h2>
+          <button id="profileClose" class="btn btn--close">&times;</button>
+        </div>
+        <div id="profileBody" class="modal__body">
+          <p class="loading">読み込み中...</p>
+        </div>
+        <div class="modal__footer">
+          <button id="rebuildBtn" class="btn btn--secondary">プロフィール再構築</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/voice.js"></script>
+  <script src="/js/chat.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
