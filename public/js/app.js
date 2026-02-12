@@ -13,8 +13,12 @@
   const profileClose = document.getElementById('profileClose');
   const profileBody = document.getElementById('profileBody');
   const rebuildBtn = document.getElementById('rebuildBtn');
+  const modeToggle = document.getElementById('modeToggle');
+  const labelNormal = document.querySelector('.mode-switch__label--normal');
+  const labelEgo = document.querySelector('.mode-switch__label--ego');
 
   let isProcessing = false;
+  let currentMode = 'alter-ego'; // 'alter-ego' | 'normal'
 
   // ---- UI Helpers ----
 
@@ -30,7 +34,11 @@
 
     const label = document.createElement('div');
     label.className = 'message__label';
-    label.textContent = role === 'user' ? 'あなた' : 'Alter Ego';
+    if (role === 'user') {
+      label.textContent = 'あなた';
+    } else {
+      label.textContent = currentMode === 'alter-ego' ? 'Alter Ego' : 'AI';
+    }
 
     const bubble = document.createElement('div');
     bubble.className = 'message__bubble';
@@ -66,7 +74,7 @@
 
     const label = document.createElement('div');
     label.className = 'message__label';
-    label.textContent = 'Alter Ego';
+    label.textContent = currentMode === 'alter-ego' ? 'Alter Ego' : 'AI';
 
     const bubble = document.createElement('div');
     bubble.className = 'message__bubble';
@@ -106,7 +114,7 @@
     const indicator = addSpeakingIndicator();
 
     try {
-      const result = await Chat.sendMessage(text);
+      const result = await Chat.sendMessage(text, currentMode);
       removeSpeakingIndicator();
       addMessage('assistant', result.assistantMessage.text, result.intent);
 
@@ -324,12 +332,25 @@
     });
   }
 
+  // ---- Mode Toggle ----
+
+  function setupModeToggle() {
+    modeToggle.addEventListener('click', () => {
+      const isAlterEgo = currentMode === 'alter-ego';
+      currentMode = isAlterEgo ? 'normal' : 'alter-ego';
+      modeToggle.setAttribute('aria-checked', String(currentMode === 'alter-ego'));
+      labelEgo.classList.toggle('mode-switch__label--active', currentMode === 'alter-ego');
+      labelNormal.classList.toggle('mode-switch__label--active', currentMode === 'normal');
+    });
+  }
+
   // ---- Init ----
 
   function init() {
     setupVoice();
     setupTextInput();
     setupProfileModal();
+    setupModeToggle();
     Chat.createSession();
   }
 

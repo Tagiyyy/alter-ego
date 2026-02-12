@@ -12,14 +12,14 @@ const Chat = (() => {
     return sessionId;
   }
 
-  async function sendMessage(text) {
+  async function sendMessage(text, mode) {
     if (!sessionId) {
       await createSession();
     }
     const res = await fetch(`${API_BASE}/chat/message`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, text }),
+      body: JSON.stringify({ sessionId, text, mode }),
     });
     return res.json();
   }
