@@ -1,0 +1,16 @@
+{
+  "name": "alter-ego",
+  "version": "1.0.0",
+  "description": "Voice chat web app with adaptive learning - learns your speaking style and responds like you",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "keywords": ["voice-chat", "adaptive-learning", "speech-recognition"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.0",
+    "uuid": "^10.0.0"
+  }
+}
