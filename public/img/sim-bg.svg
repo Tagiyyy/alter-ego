@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 900" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="360" cy="320" r="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6c63ff" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#6c63ff" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#6c63ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="headGlow" cx="360" cy="220" r="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b83ff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#8b83ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bodyFade" x1="360" y1="280" x2="360" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2a2a5a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0f0f1a" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bubble1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6c63ff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#8b83ff" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="bubble2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6c63ff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#8b83ff" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+    <filter id="bigBlur">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient glow behind person -->
+  <ellipse cx="360" cy="320" rx="300" ry="350" fill="url(#glow)"/>
+  <ellipse cx="360" cy="220" rx="120" ry="120" fill="url(#headGlow)"/>
+
+  <!-- Person silhouette - head -->
+  <circle cx="360" cy="200" r="58" fill="#1e2a4a" opacity="0.6" filter="url(#softBlur)"/>
+  <circle cx="360" cy="200" r="55" fill="#1a2240" opacity="0.7"/>
+  <!-- Subtle highlight on head -->
+  <ellipse cx="348" cy="185" rx="20" ry="25" fill="#252f50" opacity="0.4"/>
+
+  <!-- Neck -->
+  <rect x="345" y="252" width="30" height="28" rx="8" fill="#1a2240" opacity="0.6"/>
+
+  <!-- Shoulders & torso -->
+  <path d="M240 380 Q250 290 360 280 Q470 290 480 380 L480 700 L240 700 Z" fill="url(#bodyFade)" opacity="0.8"/>
+  <!-- Inner shoulder detail -->
+  <path d="M270 360 Q280 300 360 290 Q440 300 450 360 L450 500 L270 500 Z" fill="#1e2a4a" opacity="0.3"/>
+
+  <!-- Speech bubble large (main) -->
+  <g opacity="0.9">
+    <rect x="470" y="120" width="180" height="70" rx="20" fill="url(#bubble1Grad)" stroke="#6c63ff" stroke-opacity="0.2" stroke-width="1.5"/>
+    <!-- Bubble tail -->
+    <path d="M490 190 L470 210 L500 190 Z" fill="url(#bubble1Grad)"/>
+    <!-- Text lines inside bubble -->
+    <rect x="492" y="142" width="100" height="6" rx="3" fill="#8b83ff" opacity="0.3"/>
+    <rect x="492" y="156" width="75" height="6" rx="3" fill="#8b83ff" opacity="0.2"/>
+    <rect x="492" y="170" width="50" height="6" rx="3" fill="#8b83ff" opacity="0.15"/>
+  </g>
+
+  <!-- Speech bubble small (secondary) -->
+  <g opacity="0.6">
+    <rect x="510" y="60" width="120" height="45" rx="16" fill="url(#bubble2Grad)" stroke="#6c63ff" stroke-opacity="0.12" stroke-width="1"/>
+    <rect x="530" y="75" width="70" height="5" rx="2.5" fill="#8b83ff" opacity="0.2"/>
+    <rect x="530" y="86" width="45" height="5" rx="2.5" fill="#8b83ff" opacity="0.13"/>
+  </g>
+
+  <!-- Floating dots (speech/thinking indicators) -->
+  <circle cx="455" cy="230" r="5" fill="#6c63ff" opacity="0.35">
+    <animate attributeName="opacity" values="0.35;0.15;0.35" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="468" cy="215" r="7" fill="#6c63ff" opacity="0.25">
+    <animate attributeName="opacity" values="0.25;0.1;0.25" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="478" cy="195" r="4" fill="#6c63ff" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.12;0.3" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Subtle ambient particles -->
+  <circle cx="180" cy="150" r="2" fill="#6c63ff" opacity="0.2">
+    <animate attributeName="cy" values="150;140;150" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="550" cy="300" r="1.5" fill="#8b83ff" opacity="0.15">
+    <animate attributeName="cy" values="300;290;300" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="250" cy="400" r="2" fill="#6c63ff" opacity="0.12">
+    <animate attributeName="cy" values="400;392;400" dur="5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

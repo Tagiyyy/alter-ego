@@ -564,6 +564,33 @@ html, body {
   background: var(--bg-primary);
   max-width: 720px;
   margin: 0 auto;
+  overflow: hidden;
+}
+
+.sim-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/img/sim-bg.svg') no-repeat center top;
+  background-size: 100% auto;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sim-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(15, 15, 26, 0.3) 25%,
+    rgba(15, 15, 26, 0.7) 50%,
+    var(--bg-primary) 75%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .sim-screen[hidden] {
@@ -578,12 +605,19 @@ html, body {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--surface);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .sim-screen__title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--accent-light);
+}
+
+.sim-screen > .chat__messages {
+  position: relative;
+  z-index: 1;
 }
 
 .sim-welcome {
@@ -597,6 +631,8 @@ html, body {
   padding: 12px 16px 20px;
   background: linear-gradient(0deg, var(--bg-primary) 60%, transparent 100%);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .sim-candidates__label {
