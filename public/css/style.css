@@ -571,9 +571,9 @@ html, body {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/img/sim-bg.svg') no-repeat center top;
-  background-size: 100% auto;
-  opacity: 1;
+  background: url('/img/sim-bg-photo.jpg') no-repeat center top;
+  background-size: cover;
+  opacity: 0.35;
   pointer-events: none;
   z-index: 0;
 }
@@ -585,10 +585,10 @@ html, body {
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(15, 15, 26, 0.15) 35%,
-    rgba(15, 15, 26, 0.5) 60%,
-    rgba(15, 15, 26, 0.85) 80%,
-    var(--bg-primary) 95%
+    rgba(15, 15, 26, 0.2) 30%,
+    rgba(15, 15, 26, 0.6) 55%,
+    rgba(15, 15, 26, 0.9) 75%,
+    var(--bg-primary) 90%
   );
   pointer-events: none;
   z-index: 0;
