@@ -62,6 +62,28 @@ const Chat = (() => {
     return res.json();
   }
 
+  async function getBackgroundImage(relationship) {
+    const res = await fetch(`${API_BASE}/settings/background/${relationship}`);
+    return res.json();
+  }
+
+  async function uploadBackgroundImage(relationship, file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch(`${API_BASE}/settings/background/${relationship}`, {
+      method: 'POST',
+      body: formData,
+    });
+    return res.json();
+  }
+
+  async function deleteBackgroundImage(relationship) {
+    const res = await fetch(`${API_BASE}/settings/background/${relationship}`, {
+      method: 'DELETE',
+    });
+    return res.json();
+  }
+
   function getSessionId() {
     return sessionId;
   }
@@ -76,5 +98,8 @@ const Chat = (() => {
     sendSimulationReply,
     getSettings,
     updateRelationship,
+    getBackgroundImage,
+    uploadBackgroundImage,
+    deleteBackgroundImage,
   };
 })();
