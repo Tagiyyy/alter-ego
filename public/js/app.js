@@ -230,11 +230,21 @@
 
   function renderProfile(profile) {
     if (profile.totalMessages === 0) {
-      profileBody.innerHTML = '<p class="no-data">まだ会話データがありません。話しかけてみてください。</p>';
+      let html = '';
+      if (profile.relationshipLabel) {
+        html += `<div class="profile-relationship-badge">関係性: ${profile.relationshipLabel}</div>`;
+      }
+      html += '<p class="no-data">まだ会話データがありません。話しかけてみてください。</p>';
+      profileBody.innerHTML = html;
       return;
     }
 
     let html = '';
+
+    // Relationship badge
+    if (profile.relationshipLabel) {
+      html += `<div class="profile-relationship-badge">関係性: ${profile.relationshipLabel}</div>`;
+    }
 
     // Stats cards
     html += '<div class="profile-stats">';

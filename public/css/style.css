@@ -423,6 +423,17 @@ html, body {
 }
 
 /* ===== Profile Display ===== */
+.profile-relationship-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--accent);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
 .profile-section {
   margin-bottom: 20px;
 }

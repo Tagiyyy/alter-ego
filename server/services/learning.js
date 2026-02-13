@@ -1,9 +1,37 @@
 const fs = require('fs');
 const path = require('path');
 const conversation = require('./conversation');
+const settings = require('./settings');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const PROFILE_FILE = path.join(DATA_DIR, 'user_profile.json');
+const PROFILES_DIR = path.join(DATA_DIR, 'profiles');
+const LEGACY_PROFILE_FILE = path.join(DATA_DIR, 'user_profile.json');
+
+function getProfileFile(relationship) {
+  const rel = relationship || settings.getRelationship();
+  return path.join(PROFILES_DIR, `${rel}.json`);
+}
+
+// Migrate legacy single profile to the default relationship (friend)
+function migrateLegacyProfile() {
+  if (!fs.existsSync(LEGACY_PROFILE_FILE)) return;
+  const friendFile = path.join(PROFILES_DIR, 'friend.json');
+  if (fs.existsSync(friendFile)) return; // Already migrated
+
+  if (!fs.existsSync(PROFILES_DIR)) {
+    fs.mkdirSync(PROFILES_DIR, { recursive: true });
+  }
+  try {
+    const data = fs.readFileSync(LEGACY_PROFILE_FILE, 'utf-8');
+    fs.writeFileSync(friendFile, data, 'utf-8');
+    console.log('Migrated legacy user_profile.json to profiles/friend.json');
+  } catch (e) {
+    console.error('Failed to migrate legacy profile:', e.message);
+  }
+}
+
+// Run migration once on module load
+migrateLegacyProfile();
 
 // --- Japanese linguistic helpers ---
 
@@ -33,15 +61,20 @@ const POLITENESS_MARKERS = {
   casual: ['だよ', 'だぜ', 'じゃん', 'っす', 'だろ', 'だな', 'やん'],
 };
 
-function loadProfile() {
-  if (!fs.existsSync(PROFILE_FILE)) {
+function loadProfile(relationship) {
+  const file = getProfileFile(relationship);
+  if (!fs.existsSync(file)) {
     return createEmptyProfile();
   }
-  return JSON.parse(fs.readFileSync(PROFILE_FILE, 'utf-8'));
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
-function saveProfile(profile) {
-  fs.writeFileSync(PROFILE_FILE, JSON.stringify(profile, null, 2), 'utf-8');
+function saveProfile(profile, relationship) {
+  if (!fs.existsSync(PROFILES_DIR)) {
+    fs.mkdirSync(PROFILES_DIR, { recursive: true });
+  }
+  const file = getProfileFile(relationship);
+  fs.writeFileSync(file, JSON.stringify(profile, null, 2), 'utf-8');
 }
 
 function createEmptyProfile() {
@@ -167,19 +200,21 @@ function analyzeMessage(text, profile) {
 }
 
 function rebuildProfile() {
+  const relationship = settings.getRelationship();
   let profile = createEmptyProfile();
-  const userMessages = conversation.getUserMessages();
+  const userMessages = conversation.getUserMessagesByRelationship(relationship);
   for (const msg of userMessages) {
     profile = analyzeMessage(msg.text, profile);
   }
-  saveProfile(profile);
+  saveProfile(profile, relationship);
   return profile;
 }
 
 function updateProfile(text) {
-  let profile = loadProfile();
+  const relationship = settings.getRelationship();
+  let profile = loadProfile(relationship);
   profile = analyzeMessage(text, profile);
-  saveProfile(profile);
+  saveProfile(profile, relationship);
   return profile;
 }
 
@@ -191,8 +226,12 @@ function getTopItems(obj, n = 10) {
 }
 
 function getProfileSummary() {
-  const profile = loadProfile();
+  const relationship = settings.getRelationship();
+  const profile = loadProfile(relationship);
+  const relOption = settings.RELATIONSHIP_OPTIONS.find((o) => o.id === relationship);
   return {
+    relationship,
+    relationshipLabel: relOption ? relOption.label : relationship,
     totalMessages: profile.totalMessages,
     averageLength: Math.round(profile.averageLength),
     politenessScore: profile.politenessScore,
