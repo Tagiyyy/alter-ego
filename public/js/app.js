@@ -457,11 +457,29 @@
     simEditInput.value = '';
   }
 
+  async function applySimBackground() {
+    try {
+      const data = await Chat.getSettings();
+      const rel = data.settings.relationship;
+      const bg = await Chat.getBackgroundImage(rel);
+      if (bg.url) {
+        simScreen.style.setProperty('--sim-bg-url', `url('${bg.url}')`);
+      } else {
+        simScreen.style.removeProperty('--sim-bg-url');
+      }
+    } catch (e) {
+      console.warn('Failed to load sim background:', e);
+    }
+  }
+
   async function startSimulation() {
     // Show sim screen, hide main chat
     simScreen.hidden = false;
     document.querySelector('.chat').style.display = 'none';
     document.querySelector('.header').querySelector('.mode-switch').style.display = 'none';
+
+    // Apply relationship-specific background
+    applySimBackground();
 
     // Reset
     simMessages.innerHTML = '<div class="sim-welcome"><p>会話シミュレーションを開始しています...</p></div>';
@@ -573,15 +591,99 @@
     });
   }
 
+  // ---- Background Image Settings ----
+
+  const bgImageSettings = document.getElementById('bgImageSettings');
+
+  async function renderBgImageSettings(options, backgroundImages) {
+    bgImageSettings.innerHTML = '';
+    for (const opt of options) {
+      const container = document.createElement('div');
+      container.className = 'bg-image-item';
+
+      const label = document.createElement('div');
+      label.className = 'bg-image-item__label';
+      label.textContent = opt.label;
+
+      const preview = document.createElement('div');
+      preview.className = 'bg-image-item__preview';
+
+      const bgFile = backgroundImages && backgroundImages[opt.id];
+      if (bgFile) {
+        const img = document.createElement('img');
+        img.src = `/img/backgrounds/${bgFile}`;
+        img.alt = opt.label;
+        preview.appendChild(img);
+      } else {
+        preview.innerHTML = '<span class="bg-image-item__placeholder">未設定</span>';
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'bg-image-item__actions';
+
+      const uploadLabel = document.createElement('label');
+      uploadLabel.className = 'btn btn--secondary btn--small';
+      uploadLabel.textContent = bgFile ? '変更' : '設定';
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
+      fileInput.hidden = true;
+      fileInput.addEventListener('change', async () => {
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        try {
+          const result = await Chat.uploadBackgroundImage(opt.id, fileInput.files[0]);
+          if (result.url) {
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = result.url + '?t=' + Date.now();
+            img.alt = opt.label;
+            preview.appendChild(img);
+            uploadLabel.textContent = '変更';
+            removeBtn.hidden = false;
+          }
+        } catch (e) {
+          console.error('Upload failed:', e);
+        }
+        fileInput.value = '';
+      });
+      uploadLabel.appendChild(fileInput);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn--secondary btn--small btn--danger-text';
+      removeBtn.textContent = '削除';
+      removeBtn.hidden = !bgFile;
+      removeBtn.addEventListener('click', async () => {
+        try {
+          await Chat.deleteBackgroundImage(opt.id);
+          preview.innerHTML = '<span class="bg-image-item__placeholder">未設定</span>';
+          uploadLabel.textContent = '設定';
+          removeBtn.hidden = true;
+        } catch (e) {
+          console.error('Delete failed:', e);
+        }
+      });
+
+      actions.appendChild(uploadLabel);
+      actions.appendChild(removeBtn);
+      container.appendChild(label);
+      container.appendChild(preview);
+      container.appendChild(actions);
+      bgImageSettings.appendChild(container);
+    }
+  }
+
   function setupSettingsModal() {
     settingsBtn.addEventListener('click', async () => {
       settingsModal.hidden = false;
       relationshipOptions.innerHTML = '<p class="loading">読み込み中...</p>';
+      bgImageSettings.innerHTML = '<p class="loading">読み込み中...</p>';
       try {
         const data = await Chat.getSettings();
         renderRelationshipOptions(data.relationshipOptions, data.settings.relationship);
+        renderBgImageSettings(data.relationshipOptions, data.settings.backgroundImages);
       } catch (e) {
         relationshipOptions.innerHTML = '<p class="no-data">設定の読み込みに失敗しました。</p>';
+        bgImageSettings.innerHTML = '';
       }
     });
 

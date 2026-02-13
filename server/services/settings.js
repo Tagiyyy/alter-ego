@@ -2,12 +2,14 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Settings Service - persists user settings (relationship, etc.)
+ * Settings Service - persists user settings (relationship, background images, etc.)
  *
  * Stores settings in data/settings.json.
+ * Background images stored in public/img/backgrounds/.
  */
 
 const SETTINGS_FILE = path.join(__dirname, '..', '..', 'data', 'settings.json');
+const BACKGROUNDS_DIR = path.join(__dirname, '..', '..', 'public', 'img', 'backgrounds');
 
 const RELATIONSHIP_OPTIONS = [
   { id: 'friend', label: '友人', description: '対等でカジュアルな関係' },
@@ -22,6 +24,7 @@ const RELATIONSHIP_OPTIONS = [
 
 const DEFAULT_SETTINGS = {
   relationship: 'friend',
+  backgroundImages: {},
 };
 
 function loadSettings() {
@@ -59,10 +62,62 @@ function setRelationship(relationship) {
   return saveSettings({ relationship });
 }
 
+function getBackgroundImage(relationship) {
+  const rel = relationship || getRelationship();
+  const current = loadSettings();
+  const filename = current.backgroundImages && current.backgroundImages[rel];
+  if (filename) {
+    return `/img/backgrounds/${filename}`;
+  }
+  return null;
+}
+
+function setBackgroundImage(relationship, filename) {
+  const valid = RELATIONSHIP_OPTIONS.find((o) => o.id === relationship);
+  if (!valid) {
+    throw new Error(`Invalid relationship: ${relationship}`);
+  }
+  const current = loadSettings();
+  const backgroundImages = { ...(current.backgroundImages || {}), [relationship]: filename };
+  return saveSettings({ backgroundImages });
+}
+
+function removeBackgroundImage(relationship) {
+  const valid = RELATIONSHIP_OPTIONS.find((o) => o.id === relationship);
+  if (!valid) {
+    throw new Error(`Invalid relationship: ${relationship}`);
+  }
+  const current = loadSettings();
+  const backgroundImages = { ...(current.backgroundImages || {}) };
+  const oldFilename = backgroundImages[relationship];
+  delete backgroundImages[relationship];
+
+  // Delete the file
+  if (oldFilename) {
+    const filePath = path.join(BACKGROUNDS_DIR, oldFilename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+
+  return saveSettings({ backgroundImages });
+}
+
+function ensureBackgroundsDir() {
+  if (!fs.existsSync(BACKGROUNDS_DIR)) {
+    fs.mkdirSync(BACKGROUNDS_DIR, { recursive: true });
+  }
+}
+
 module.exports = {
   RELATIONSHIP_OPTIONS,
+  BACKGROUNDS_DIR,
   loadSettings,
   saveSettings,
   getRelationship,
   setRelationship,
+  getBackgroundImage,
+  setBackgroundImage,
+  removeBackgroundImage,
+  ensureBackgroundsDir,
 };
