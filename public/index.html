@@ -14,6 +14,9 @@
       <button id="profileBtn" class="btn btn--secondary btn--small" title="学習プロフィール">
         <span class="icon">📊</span> 学習状況
       </button>
+      <button id="settingsBtn" class="btn btn--secondary btn--small btn--settings" title="設定">
+        <span class="icon">⚙</span> 設定
+      </button>
       <button id="simBtn" class="btn btn--secondary btn--small btn--sim" title="会話シミュレーション">
         <span class="icon">💬</span> シミュレーション
       </button>
@@ -78,6 +81,24 @@
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
             </svg>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" hidden>
+      <div class="modal__backdrop"></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>設定</h2>
+          <button id="settingsClose" class="btn btn--close">&times;</button>
+        </div>
+        <div id="settingsBody" class="modal__body">
+          <div class="settings-section">
+            <div class="settings-section__title">AIとの関係性</div>
+            <p class="settings-section__desc">AIがあなたに対してどのような関係で接するかを選んでください。通常AIの会話と会話シミュレーションの両方に反映されます。</p>
+            <div id="relationshipOptions" class="relationship-options"></div>
+          </div>
         </div>
       </div>
     </div>

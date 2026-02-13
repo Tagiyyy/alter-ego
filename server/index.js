@@ -4,6 +4,7 @@ const path = require('path');
 const chatRoutes = require('./routes/chat');
 const learningRoutes = require('./routes/learning');
 const simulationRoutes = require('./routes/simulation');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/api/chat', chatRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/simulation', simulationRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));

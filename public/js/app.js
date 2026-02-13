@@ -17,6 +17,12 @@
   const labelNormal = document.querySelector('.mode-switch__label--normal');
   const labelEgo = document.querySelector('.mode-switch__label--ego');
 
+  // Settings modal DOM references
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsClose = document.getElementById('settingsClose');
+  const relationshipOptions = document.getElementById('relationshipOptions');
+
   // Simulation mode DOM references
   const simBtn = document.getElementById('simBtn');
   const simScreen = document.getElementById('simScreen');
@@ -534,6 +540,50 @@
     });
   }
 
+  // ---- Settings Modal ----
+
+  function renderRelationshipOptions(options, currentRelationship) {
+    relationshipOptions.innerHTML = '';
+    options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.className = 'relationship-option' + (opt.id === currentRelationship ? ' relationship-option--selected' : '');
+      btn.innerHTML = `<span class="relationship-option__label">${opt.label}</span><span class="relationship-option__desc">${opt.description}</span>`;
+      btn.addEventListener('click', async () => {
+        try {
+          await Chat.updateRelationship(opt.id);
+          relationshipOptions.querySelectorAll('.relationship-option').forEach((b) => {
+            b.classList.remove('relationship-option--selected');
+          });
+          btn.classList.add('relationship-option--selected');
+        } catch (e) {
+          console.error('Failed to update relationship:', e);
+        }
+      });
+      relationshipOptions.appendChild(btn);
+    });
+  }
+
+  function setupSettingsModal() {
+    settingsBtn.addEventListener('click', async () => {
+      settingsModal.hidden = false;
+      relationshipOptions.innerHTML = '<p class="loading">読み込み中...</p>';
+      try {
+        const data = await Chat.getSettings();
+        renderRelationshipOptions(data.relationshipOptions, data.settings.relationship);
+      } catch (e) {
+        relationshipOptions.innerHTML = '<p class="no-data">設定の読み込みに失敗しました。</p>';
+      }
+    });
+
+    settingsClose.addEventListener('click', () => {
+      settingsModal.hidden = true;
+    });
+
+    settingsModal.querySelector('.modal__backdrop').addEventListener('click', () => {
+      settingsModal.hidden = true;
+    });
+  }
+
   // ---- Init ----
 
   function init() {
@@ -542,6 +592,7 @@
     setupProfileModal();
     setupModeToggle();
     setupSimulation();
+    setupSettingsModal();
     Chat.createSession();
   }
 

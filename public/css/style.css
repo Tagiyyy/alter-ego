@@ -551,8 +551,8 @@ html, body {
 /* ===== Simulation Mode ===== */
 #simBtn {
   position: absolute;
-  left: 16px;
-  top: 12px;
+  right: 16px;
+  top: 44px;
 }
 
 .sim-screen {
@@ -679,6 +679,72 @@ html, body {
 .sim-candidates__edit {
   display: flex;
   gap: 8px;
+}
+
+/* ===== Settings ===== */
+#settingsBtn {
+  position: absolute;
+  left: 16px;
+  top: 44px;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-section__title {
+  font-size: 0.9rem;
+  color: var(--accent-light);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.settings-section__desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.relationship-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.relationship-option {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.relationship-option:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent-glow);
+}
+
+.relationship-option--selected {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.relationship-option__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.relationship-option__desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }
 
 /* ===== Responsive ===== */

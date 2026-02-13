@@ -48,6 +48,20 @@ const Chat = (() => {
     return res.json();
   }
 
+  async function getSettings() {
+    const res = await fetch(`${API_BASE}/settings`);
+    return res.json();
+  }
+
+  async function updateRelationship(relationship) {
+    const res = await fetch(`${API_BASE}/settings/relationship`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ relationship }),
+    });
+    return res.json();
+  }
+
   function getSessionId() {
     return sessionId;
   }
@@ -60,5 +74,7 @@ const Chat = (() => {
     getSessionId,
     startSimulation,
     sendSimulationReply,
+    getSettings,
+    updateRelationship,
   };
 })();
