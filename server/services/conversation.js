@@ -28,7 +28,7 @@ function createSession() {
   return data.sessions[sessionId];
 }
 
-function addMessage(sessionId, role, text) {
+function addMessage(sessionId, role, text, metadata) {
   const data = loadConversations();
   if (!data.sessions[sessionId]) {
     data.sessions[sessionId] = {
@@ -43,6 +43,9 @@ function addMessage(sessionId, role, text) {
     text,
     timestamp: new Date().toISOString(),
   };
+  if (metadata && metadata.relationship) {
+    message.relationship = metadata.relationship;
+  }
   data.sessions[sessionId].messages.push(message);
   saveConversations(data);
   return message;
@@ -66,10 +69,17 @@ function getUserMessages() {
   return getAllMessages().filter((m) => m.role === 'user');
 }
 
+function getUserMessagesByRelationship(relationship) {
+  return getAllMessages().filter(
+    (m) => m.role === 'user' && m.relationship === relationship
+  );
+}
+
 module.exports = {
   createSession,
   addMessage,
   getSession,
   getAllMessages,
   getUserMessages,
+  getUserMessagesByRelationship,
 };

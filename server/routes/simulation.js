@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conversation = require('../services/conversation');
 const ai = require('../services/ai');
+const settings = require('../services/settings');
 
 // Start a simulation session: create session + generate opener
 router.post('/start', async (req, res) => {
@@ -38,8 +39,9 @@ router.post('/reply', async (req, res) => {
   }
 
   try {
-    // Save user message
-    const userMessage = conversation.addMessage(sessionId, 'user', text);
+    // Save user message with current relationship tag
+    const relationship = settings.getRelationship();
+    const userMessage = conversation.addMessage(sessionId, 'user', text, { relationship });
 
     // Generate system reply
     const replyText = await ai.generateSimulationReply(text, sessionId);

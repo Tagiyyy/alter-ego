@@ -3,6 +3,7 @@ const router = express.Router();
 const conversation = require('../services/conversation');
 const learning = require('../services/learning');
 const ai = require('../services/ai');
+const settings = require('../services/settings');
 
 // Create a new session
 router.post('/session', (req, res) => {
@@ -19,8 +20,9 @@ router.post('/message', async (req, res) => {
 
   const aiMode = mode === 'normal' ? 'normal' : 'alter-ego';
 
-  // Save user message
-  const userMessage = conversation.addMessage(sessionId, 'user', text);
+  // Save user message with current relationship tag
+  const relationship = settings.getRelationship();
+  const userMessage = conversation.addMessage(sessionId, 'user', text, { relationship });
 
   // Update learning profile (always learn, regardless of mode)
   learning.updateProfile(text);
