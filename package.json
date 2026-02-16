@@ -14,7 +14,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.74.0",
+    "openai": "^4.78.0",
     "dotenv": "^17.2.4",
     "express": "^4.21.0",
     "multer": "^2.0.2",
