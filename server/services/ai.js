@@ -1,4 +1,4 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 const learning = require('./learning');
 const conversation = require('./conversation');
 const settings = require('./settings');
@@ -6,23 +6,32 @@ const settings = require('./settings');
 /**
  * AI Response Generator - LLM-powered
  *
- * Uses Claude API for natural, context-aware conversation.
+ * Uses OpenRouter API for natural, context-aware conversation.
  * - Normal mode: Friendly, helpful assistant
  * - Alter Ego mode: Mimics the user's speaking style based on learned profile
  *
  * Falls back to template-based responses if API key is not configured.
  */
 
-// ===== Anthropic Client =====
+// ===== OpenRouter Client =====
+
+const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-5-20250929';
 
 let client = null;
 
 function getClient() {
   if (client) return client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return null;
-  client = new Anthropic({ apiKey });
+  client = new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey,
+  });
   return client;
+}
+
+function getModel() {
+  return process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 }
 
 // ===== Relationship Tone Definitions =====
@@ -196,7 +205,7 @@ function getConversationMessages(sessionId, maxMessages = 20) {
   // Get recent messages, exclude the very last one (current user message already in the API call)
   const messages = session.messages.slice(-maxMessages);
 
-  // Convert to Claude API format
+  // Convert to OpenAI chat format
   return messages.map((m) => ({
     role: m.role === 'user' ? 'user' : 'assistant',
     content: m.text,
@@ -206,8 +215,8 @@ function getConversationMessages(sessionId, maxMessages = 20) {
 // ===== LLM Response Generation =====
 
 async function generateLLMResponse(userText, sessionId, mode) {
-  const anthropic = getClient();
-  if (!anthropic) return null; // No API key, fall back to template
+  const openai = getClient();
+  if (!openai) return null; // No API key, fall back to template
 
   let systemPrompt;
   if (mode === 'normal') {
@@ -247,15 +256,17 @@ async function generateLLMResponse(userText, sessionId, mode) {
     messages.push({ role: 'user', content: userText });
   }
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 256,
-    system: systemPrompt,
-    messages,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
   });
 
-  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
-    return response.content[0].text;
+  if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+    return response.choices[0].message.content;
   }
 
   return null;
@@ -374,9 +385,9 @@ function detectIntent(text) {
 
 function generateTemplateFallback(userText, mode) {
   if (mode === 'normal') {
-    return '申し訳ありません。ANTHROPIC_API_KEY が設定されていないため、応答を生成できません。.env ファイルに API キーを設定してください。';
+    return '申し訳ありません。OPENROUTER_API_KEY が設定されていないため、応答を生成できません。.env ファイルに API キーを設定してください。';
   }
-  return 'APIキーが未設定です。.env に ANTHROPIC_API_KEY を設定してください。';
+  return 'APIキーが未設定です。.env に OPENROUTER_API_KEY を設定してください。';
 }
 
 // ===== Simulation Mode =====
@@ -395,28 +406,28 @@ ${tone.toneRules.map((r) => `- ${r}`).join('\n')}`;
 }
 
 async function generateSimulationOpener(sessionId) {
-  const anthropic = getClient();
-  if (!anthropic) return null;
+  const openai = getClient();
+  if (!openai) return null;
 
   const { tone } = getRelationshipPromptBlock();
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 256,
-    system: buildSimulationSystemPrompt(),
     messages: [
+      { role: 'system', content: buildSimulationSystemPrompt() },
       { role: 'user', content: `${tone.roleDescription}として自然に話しかけてください。何か日常的な話題で会話を始めてください。` },
     ],
   });
 
-  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
-    return response.content[0].text;
+  if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+    return response.choices[0].message.content;
   }
   return null;
 }
 
 async function generateUserCandidates(sessionId, count = 3) {
-  const anthropic = getClient();
-  if (!anthropic) return null;
+  const openai = getClient();
+  if (!openai) return null;
 
   const profile = learning.loadProfile();
   const summary = learning.getProfileSummary();
@@ -469,16 +480,18 @@ async function generateUserCandidates(sessionId, count = 3) {
     messages.push({ role: 'user', content: 'この会話の流れに対して、ユーザーらしい返答候補を生成してください。' });
   }
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 512,
-    system: candidateSystemPrompt,
-    messages,
+    messages: [
+      { role: 'system', content: candidateSystemPrompt },
+      ...messages,
+    ],
   });
 
-  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
+  if (response.choices && response.choices.length > 0 && response.choices[0].message) {
     try {
-      const text = response.content[0].text.trim();
+      const text = response.choices[0].message.content.trim();
       // Extract JSON array from the response
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
@@ -496,8 +509,8 @@ async function generateUserCandidates(sessionId, count = 3) {
 }
 
 async function generateSimulationReply(userText, sessionId) {
-  const anthropic = getClient();
-  if (!anthropic) return null;
+  const openai = getClient();
+  if (!openai) return null;
 
   const { tone } = getRelationshipPromptBlock();
   const replySystemPrompt = `あなたは${tone.roleDescription}として自然に会話を続けてください。以下のルールに従ってください:
@@ -531,15 +544,17 @@ ${tone.toneRules.map((r) => `- ${r}`).join('\n')}`;
     messages.push({ role: 'user', content: userText });
   }
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 256,
-    system: replySystemPrompt,
-    messages,
+    messages: [
+      { role: 'system', content: replySystemPrompt },
+      ...messages,
+    ],
   });
 
-  if (response.content && response.content.length > 0 && response.content[0].type === 'text') {
-    return response.content[0].text;
+  if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+    return response.choices[0].message.content;
   }
   return null;
 }
