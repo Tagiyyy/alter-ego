@@ -308,6 +308,45 @@ html, body {
   text-align: right;
 }
 
+.btn--tts-toggle {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.btn--tts-toggle svg {
+  fill: var(--text-secondary);
+  transition: fill 0.2s;
+}
+
+.btn--tts-toggle:hover svg {
+  fill: var(--text-primary);
+}
+
+.btn--tts-toggle--off svg {
+  fill: var(--text-muted);
+}
+
+.volume-control__slider:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.volume-control__slider:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.volume-control__slider:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}
+
 .text-input {
   display: flex;
   gap: 8px;

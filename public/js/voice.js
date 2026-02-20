@@ -12,6 +12,14 @@ const Voice = (() => {
   let onStatusCallback = null;
   let currentUtterance = null;
   let currentVolume = 1.0;
+  let ttsEnabled = (() => {
+    try {
+      const saved = localStorage.getItem('ttsEnabled');
+      return saved === null ? true : saved === 'true';
+    } catch (e) {
+      return true;
+    }
+  })();
 
   function isSupported() {
     return !!SpeechRecognition;
@@ -105,8 +113,28 @@ const Voice = (() => {
     }
   }
 
+  function setTtsEnabled(value) {
+    ttsEnabled = !!value;
+    if (!ttsEnabled && synth && synth.speaking) {
+      synth.cancel();
+      currentUtterance = null;
+    }
+    try {
+      localStorage.setItem('ttsEnabled', String(ttsEnabled));
+    } catch (e) {}
+  }
+
+  function isTtsEnabled() {
+    return ttsEnabled;
+  }
+
   function speak(text, options = {}) {
     return new Promise((resolve, reject) => {
+      if (!ttsEnabled) {
+        resolve();
+        return;
+      }
+
       if (!isSynthSupported()) {
         reject(new Error('Speech synthesis not supported'));
         return;
@@ -201,5 +229,7 @@ const Voice = (() => {
     isSpeaking,
     setVolume,
     getVolume,
+    setTtsEnabled,
+    isTtsEnabled,
   };
 })();
