@@ -15,7 +15,7 @@ const settings = require('./settings');
 
 // ===== OpenRouter Client =====
 
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-5-20250929';
+const DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5';
 
 let client = null;
 
