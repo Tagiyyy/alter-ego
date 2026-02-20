@@ -47,9 +47,11 @@
           </button>
           <div id="voiceStatus" class="voice-status">待機中</div>
           <div class="volume-control">
-            <svg class="volume-control__icon" viewBox="0 0 24 24" width="16" height="16" title="音量">
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-            </svg>
+            <button id="ttsToggleBtn" class="btn btn--tts-toggle" title="音声読み上げ ON/OFF" aria-pressed="true">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+              </svg>
+            </button>
             <input type="range" id="volumeSlider" class="volume-control__slider" min="0" max="100" value="100" title="音量調整" />
             <span id="volumeValue" class="volume-control__value">100%</span>
           </div>
