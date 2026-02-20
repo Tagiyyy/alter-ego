@@ -23,6 +23,10 @@
   const settingsClose = document.getElementById('settingsClose');
   const relationshipOptions = document.getElementById('relationshipOptions');
 
+  // Volume control DOM references
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeValue = document.getElementById('volumeValue');
+
   // Simulation mode DOM references
   const simBtn = document.getElementById('simBtn');
   const simScreen = document.getElementById('simScreen');
@@ -151,6 +155,26 @@
     }
 
     isProcessing = false;
+  }
+
+  // ---- Volume Control ----
+
+  function setupVolumeControl() {
+    const savedVolume = localStorage.getItem('ttsVolume');
+    const initialVolume = savedVolume !== null ? parseFloat(savedVolume) : 1.0;
+    const initialPercent = Math.round(initialVolume * 100);
+
+    volumeSlider.value = initialPercent;
+    volumeValue.textContent = initialPercent + '%';
+    Voice.setVolume(initialVolume);
+
+    volumeSlider.addEventListener('input', () => {
+      const percent = parseInt(volumeSlider.value, 10);
+      const volume = percent / 100;
+      volumeValue.textContent = percent + '%';
+      Voice.setVolume(volume);
+      localStorage.setItem('ttsVolume', String(volume));
+    });
   }
 
   // ---- Voice Setup ----
@@ -699,6 +723,7 @@
   // ---- Init ----
 
   function init() {
+    setupVolumeControl();
     setupVoice();
     setupTextInput();
     setupProfileModal();
