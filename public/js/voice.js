@@ -11,6 +11,7 @@ const Voice = (() => {
   let onResultCallback = null;
   let onStatusCallback = null;
   let currentUtterance = null;
+  let currentVolume = 1.0;
 
   function isSupported() {
     return !!SpeechRecognition;
@@ -118,7 +119,7 @@ const Voice = (() => {
       utterance.lang = options.lang || 'ja-JP';
       utterance.rate = options.rate || 1.0;
       utterance.pitch = options.pitch || 1.0;
-      utterance.volume = options.volume || 1.0;
+      utterance.volume = options.volume !== undefined ? options.volume : currentVolume;
 
       // Try to use a Japanese voice
       const voices = synth.getVoices();
@@ -172,6 +173,14 @@ const Voice = (() => {
     return synth && synth.speaking;
   }
 
+  function setVolume(value) {
+    currentVolume = Math.max(0, Math.min(1, value));
+  }
+
+  function getVolume() {
+    return currentVolume;
+  }
+
   // Pre-load voices (some browsers need this)
   if (synth) {
     synth.getVoices();
@@ -190,5 +199,7 @@ const Voice = (() => {
     onStatus,
     getIsListening,
     isSpeaking,
+    setVolume,
+    getVolume,
   };
 })();

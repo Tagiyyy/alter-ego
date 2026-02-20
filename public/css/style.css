@@ -247,6 +247,67 @@ html, body {
   min-width: 100px;
 }
 
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.volume-control__icon {
+  fill: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.volume-control__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-control__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.volume-control__slider::-webkit-slider-thumb:hover {
+  background: var(--accent-light);
+  transform: scale(1.2);
+}
+
+.volume-control__slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.volume-control__slider::-moz-range-thumb:hover {
+  background: var(--accent-light);
+  transform: scale(1.2);
+}
+
+.volume-control__value {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  min-width: 32px;
+  text-align: right;
+}
+
 .text-input {
   display: flex;
   gap: 8px;
