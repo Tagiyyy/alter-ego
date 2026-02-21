@@ -281,6 +281,31 @@
 
   // ---- Profile Modal ----
 
+  function escAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderEditableSection(title, items, category) {
+    let html = '<div class="profile-section">';
+    html += `<div class="profile-section__title">${title}</div>`;
+    html += '<div class="tag-list">';
+    for (const item of items) {
+      const t = escAttr(item.text);
+      html += `<span class="tag" data-category="${category}" data-text="${t}">${t}<span class="tag__count">${item.count}</span><button class="tag__delete" title="削除">×</button></span>`;
+    }
+    html += '</div>';
+    html += `<form class="pattern-add-form" data-category="${category}">
+      <input type="text" class="pattern-add-input" placeholder="追加..." maxlength="20" autocomplete="off">
+      <button type="submit" class="pattern-add-btn">追加</button>
+    </form>`;
+    html += '</div>';
+    return html;
+  }
+
   function renderProfile(profile) {
     if (profile.totalMessages === 0) {
       let html = '';
@@ -288,6 +313,10 @@
         html += `<div class="profile-relationship-badge">関係性: ${profile.relationshipLabel}</div>`;
       }
       html += '<p class="no-data">まだ会話データがありません。話しかけてみてください。</p>';
+      // Still show editable sections even with no messages
+      html += renderEditableSection('一人称', profile.firstPersonUsage || [], 'firstPerson');
+      html += renderEditableSection('語尾パターン', profile.topSentenceEnders || [], 'sentenceEnders');
+      html += renderEditableSection('口癖・フィラー', profile.topFillerWords || [], 'fillerWords');
       profileBody.innerHTML = html;
       return;
     }
@@ -315,38 +344,14 @@
     </div>`;
     html += '</div>';
 
-    // First person
-    if (profile.firstPersonUsage.length > 0) {
-      html += '<div class="profile-section">';
-      html += '<div class="profile-section__title">一人称</div>';
-      html += '<div class="tag-list">';
-      for (const item of profile.firstPersonUsage) {
-        html += `<span class="tag">${item.text}<span class="tag__count">${item.count}</span></span>`;
-      }
-      html += '</div></div>';
-    }
+    // First person (editable)
+    html += renderEditableSection('一人称', profile.firstPersonUsage, 'firstPerson');
 
-    // Sentence enders
-    if (profile.topSentenceEnders.length > 0) {
-      html += '<div class="profile-section">';
-      html += '<div class="profile-section__title">語尾パターン</div>';
-      html += '<div class="tag-list">';
-      for (const item of profile.topSentenceEnders) {
-        html += `<span class="tag">${item.text}<span class="tag__count">${item.count}</span></span>`;
-      }
-      html += '</div></div>';
-    }
+    // Sentence enders (editable)
+    html += renderEditableSection('語尾パターン', profile.topSentenceEnders, 'sentenceEnders');
 
-    // Filler words
-    if (profile.topFillerWords.length > 0) {
-      html += '<div class="profile-section">';
-      html += '<div class="profile-section__title">口癖・フィラー</div>';
-      html += '<div class="tag-list">';
-      for (const item of profile.topFillerWords) {
-        html += `<span class="tag">${item.text}<span class="tag__count">${item.count}</span></span>`;
-      }
-      html += '</div></div>';
-    }
+    // Filler words (editable)
+    html += renderEditableSection('口癖・フィラー', profile.topFillerWords, 'fillerWords');
 
     // Top words
     if (profile.topWords.length > 0) {
@@ -354,7 +359,7 @@
       html += '<div class="profile-section__title">よく使う言葉</div>';
       html += '<div class="tag-list">';
       for (const item of profile.topWords) {
-        html += `<span class="tag">${item.text}<span class="tag__count">${item.count}</span></span>`;
+        html += `<span class="tag">${escAttr(item.text)}<span class="tag__count">${item.count}</span></span>`;
       }
       html += '</div></div>';
     }
@@ -365,7 +370,7 @@
       html += '<div class="profile-section__title">頻出フレーズ</div>';
       html += '<div class="tag-list">';
       for (const item of profile.topPhrases) {
-        html += `<span class="tag">${item.text}<span class="tag__count">${item.count}</span></span>`;
+        html += `<span class="tag">${escAttr(item.text)}<span class="tag__count">${item.count}</span></span>`;
       }
       html += '</div></div>';
     }
@@ -410,6 +415,45 @@
       }
       rebuildBtn.disabled = false;
       rebuildBtn.textContent = 'プロフィール再構築';
+    });
+
+    // Delete pattern on × button click
+    profileBody.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('.tag__delete');
+      if (!deleteBtn) return;
+      const tag = deleteBtn.closest('.tag');
+      if (!tag) return;
+      const { category, text } = tag.dataset;
+      deleteBtn.disabled = true;
+      try {
+        const result = await Chat.deletePattern(category, text);
+        if (result.summary) renderProfile(result.summary);
+      } catch (err) {
+        console.error('Delete pattern failed:', err);
+        deleteBtn.disabled = false;
+      }
+    });
+
+    // Add pattern on form submit
+    profileBody.addEventListener('submit', async (e) => {
+      const form = e.target.closest('.pattern-add-form');
+      if (!form) return;
+      e.preventDefault();
+      const category = form.dataset.category;
+      const input = form.querySelector('.pattern-add-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const btn = form.querySelector('.pattern-add-btn');
+      btn.disabled = true;
+      input.disabled = true;
+      try {
+        const result = await Chat.addPattern(category, text);
+        if (result.summary) renderProfile(result.summary);
+      } catch (err) {
+        console.error('Add pattern failed:', err);
+        btn.disabled = false;
+        input.disabled = false;
+      }
     });
   }
 

@@ -250,11 +250,37 @@ function getProfileSummary() {
   };
 }
 
+const EDITABLE_CATEGORIES = ['firstPerson', 'sentenceEnders', 'fillerWords'];
+
+function addPatternItem(category, text) {
+  if (!EDITABLE_CATEGORIES.includes(category)) {
+    throw new Error(`Invalid category: ${category}`);
+  }
+  const relationship = settings.getRelationship();
+  const profile = loadProfile(relationship);
+  profile[category][text] = (profile[category][text] || 0) + 1;
+  saveProfile(profile, relationship);
+  return profile;
+}
+
+function deletePatternItem(category, text) {
+  if (!EDITABLE_CATEGORIES.includes(category)) {
+    throw new Error(`Invalid category: ${category}`);
+  }
+  const relationship = settings.getRelationship();
+  const profile = loadProfile(relationship);
+  delete profile[category][text];
+  saveProfile(profile, relationship);
+  return profile;
+}
+
 module.exports = {
   loadProfile,
   updateProfile,
   rebuildProfile,
   getProfileSummary,
+  addPatternItem,
+  deletePatternItem,
   getTopItems,
   JAPANESE_SENTENCE_ENDERS,
   FILLER_WORDS,

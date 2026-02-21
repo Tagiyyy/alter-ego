@@ -34,6 +34,24 @@ const Chat = (() => {
     return res.json();
   }
 
+  async function addPattern(category, text) {
+    const res = await fetch(`${API_BASE}/learning/pattern`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, text }),
+    });
+    return res.json();
+  }
+
+  async function deletePattern(category, text) {
+    const res = await fetch(`${API_BASE}/learning/pattern`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, text }),
+    });
+    return res.json();
+  }
+
   async function startSimulation() {
     const res = await fetch(`${API_BASE}/simulation/start`, { method: 'POST' });
     return res.json();
@@ -93,6 +111,8 @@ const Chat = (() => {
     sendMessage,
     getProfile,
     rebuildProfile,
+    addPattern,
+    deletePattern,
     getSessionId,
     startSimulation,
     sendSimulationReply,

@@ -580,6 +580,8 @@ html, body {
 }
 
 .tag {
+  display: inline-flex;
+  align-items: center;
   padding: 4px 10px;
   background: var(--surface);
   border-radius: 20px;
@@ -591,6 +593,57 @@ html, body {
   color: var(--text-muted);
   font-size: 0.7rem;
   margin-left: 4px;
+}
+
+.tag__delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  margin-left: 4px;
+  padding: 0 2px;
+}
+
+.tag__delete:hover {
+  color: #ff6b6b;
+}
+
+.pattern-add-form {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pattern-add-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  outline: none;
+  padding: 4px 12px;
+  width: 120px;
+}
+
+.pattern-add-input:focus {
+  border-color: var(--accent-light);
+}
+
+.pattern-add-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+}
+
+.pattern-add-btn:hover {
+  opacity: 0.85;
 }
 
 .loading {
